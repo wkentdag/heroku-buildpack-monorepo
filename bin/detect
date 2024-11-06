@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "Build pack for monorepo enabled"
+exit 0

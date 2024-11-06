@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+shopt -s dotglob
+
+indent() {
+    sed -u 's/^/      /'
+}
+
+BUILD_DIR="$1"
+ENV_DIR="$3"
+
+# Check if APP_FILTER is set in the environment or as a file in ENV_DIR
+if [ ! -f "${ENV_DIR}/APP_FILTER" ]; then
+    echo "APP_FILTER was not set. Aborting" | indent
+    exit 1
+fi
+
+APP_FILTER="$(cat "${ENV_DIR}/APP_FILTER")"
+
+echo "APP_FILTER is set to: ${APP_FILTER}" | indent
+
+# Define the path to the root package.json
+ROOT_PACKAGE_JSON="${BUILD_DIR}/package.json"
+
+if [ ! -f "${ROOT_PACKAGE_JSON}" ]; then
+    echo "No package.json found in root. Aborting" | indent
+    exit 1
+fi
+
+# Backup the original package.json
+cp "${ROOT_PACKAGE_JSON}" "${ROOT_PACKAGE_JSON}.backup"
+
+echo "Updating build script in package.json" | indent
+sed -i -e "s|\"build\":.*|\"build\": \"pnpm --filter=${APP_FILTER} build\",|" "${ROOT_PACKAGE_JSON}"
+
+echo "Updating start script in package.json" | indent
+sed -i -e "s|\"start\":.*|\"start\": \"pnpm --filter=${APP_FILTER} start\",|" "${ROOT_PACKAGE_JSON}"
+
+# Validate if the replacement was successful
+if grep -q "\"build\": \"pnpm --filter=${APP_FILTER} build\"" "${ROOT_PACKAGE_JSON}" && grep -q "\"start\": \"pnpm --filter=${APP_FILTER} start\"" "${ROOT_PACKAGE_JSON}"; then
+    echo "Updated package.json with build and start commands for ${APP_FILTER}" | indent
+else
+    echo "Failed to update package.json" | indent
+    mv "${ROOT_PACKAGE_JSON}.backup" "${ROOT_PACKAGE_JSON}"
+    exit 1
+fi
