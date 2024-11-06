@@ -92,6 +92,10 @@ Ensure the order of buildpacks is correct and it's always in first place.
    heroku config:set APP_FILTER=@monorepo/website -a <your-app-name>
    ```
 
+or with Heroku dashboard you can config both like this :
+
+![Screenshot](https://github.com/user-attachments/assets/b3ee5903-6272-4141-800f-34a068330366)
+
 
 ## License
 
