@@ -34,13 +34,27 @@ echo "Updating build script in package.json" | indent
 # Get the current build command and append --filter
 CURRENT_BUILD=$(jq -r '.scripts.build' "${ROOT_PACKAGE_JSON}")
 NEW_BUILD="${CURRENT_BUILD} --filter=${APP_FILTER}"
-sed -i -e "s|\"build\":.*|\"build\": \"${NEW_BUILD}\",|" "${ROOT_PACKAGE_JSON}"
+
+# Check if build is the last script
+IS_BUILD_LAST=$(jq -r '.scripts | keys | .[-1] == "build"' "${ROOT_PACKAGE_JSON}")
+if [ "$IS_BUILD_LAST" = "true" ]; then
+    sed -i -e "s|\"build\":.*|\"build\": \"${NEW_BUILD}\"|" "${ROOT_PACKAGE_JSON}"
+else
+    sed -i -e "s|\"build\":.*|\"build\": \"${NEW_BUILD}\",|" "${ROOT_PACKAGE_JSON}"
+fi
 
 echo "Updating start script in package.json" | indent
 # Get the current start command and append --filter
 CURRENT_START=$(jq -r '.scripts.start' "${ROOT_PACKAGE_JSON}")
 NEW_START="${CURRENT_START} --filter=${APP_FILTER}"
-sed -i -e "s|\"start\":.*|\"start\": \"${NEW_START}\",|" "${ROOT_PACKAGE_JSON}"
+
+# Check if start is the last script
+IS_START_LAST=$(jq -r '.scripts | keys | .[-1] == "start"' "${ROOT_PACKAGE_JSON}")
+if [ "$IS_START_LAST" = "true" ]; then
+    sed -i -e "s|\"start\":.*|\"start\": \"${NEW_START}\"|" "${ROOT_PACKAGE_JSON}"
+else
+    sed -i -e "s|\"start\":.*|\"start\": \"${NEW_START}\",|" "${ROOT_PACKAGE_JSON}"
+fi
 
 # Validate if the replacement was successful
 if grep -q "\"build\": \"${NEW_BUILD}\"" "${ROOT_PACKAGE_JSON}" && grep -q "\"start\": \"${NEW_START}\"" "${ROOT_PACKAGE_JSON}"; then
