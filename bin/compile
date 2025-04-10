@@ -31,16 +31,22 @@ fi
 cp "${ROOT_PACKAGE_JSON}" "${ROOT_PACKAGE_JSON}.backup"
 
 echo "Updating build script in package.json" | indent
-sed -i -e "s|\"build\":.*|\"build\": \"pnpm --filter=${APP_FILTER} build\",|" "${ROOT_PACKAGE_JSON}"
+# Get the current build command and append --filter
+CURRENT_BUILD=$(jq -r '.scripts.build' "${ROOT_PACKAGE_JSON}")
+NEW_BUILD="${CURRENT_BUILD} --filter=${APP_FILTER}"
+sed -i -e "s|\"build\":.*|\"build\": \"${NEW_BUILD}\",|" "${ROOT_PACKAGE_JSON}"
 
 echo "Updating start script in package.json" | indent
-sed -i -e "s|\"start\":.*|\"start\": \"pnpm --filter=${APP_FILTER} start\",|" "${ROOT_PACKAGE_JSON}"
+# Get the current start command and append --filter
+CURRENT_START=$(jq -r '.scripts.start' "${ROOT_PACKAGE_JSON}")
+NEW_START="${CURRENT_START} --filter=${APP_FILTER}"
+sed -i -e "s|\"start\":.*|\"start\": \"${NEW_START}\",|" "${ROOT_PACKAGE_JSON}"
 
 # Validate if the replacement was successful
-if grep -q "\"build\": \"pnpm --filter=${APP_FILTER} build\"" "${ROOT_PACKAGE_JSON}" && grep -q "\"start\": \"pnpm --filter=${APP_FILTER} start\"" "${ROOT_PACKAGE_JSON}"; then
+if grep -q "\"build\": \"${NEW_BUILD}\"" "${ROOT_PACKAGE_JSON}" && grep -q "\"start\": \"${NEW_START}\"" "${ROOT_PACKAGE_JSON}"; then
     echo "Updated package.json with build and start commands for ${APP_FILTER}" | indent
 else
     echo "Failed to update package.json" | indent
     mv "${ROOT_PACKAGE_JSON}.backup" "${ROOT_PACKAGE_JSON}"
     exit 1
-fi
+fi 
